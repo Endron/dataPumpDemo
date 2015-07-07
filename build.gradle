@@ -1,11 +1,10 @@
 buildscript {
     repositories {
         mavenCentral()
-        maven {url "http://repo.spring.io/milestone"}
     }
     
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.4.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.5.RELEASE")
     }
 }
 apply plugin: 'spring-boot'
@@ -15,11 +14,10 @@ sourceCompatibility = '1.8'
 
 repositories {
     mavenCentral()
-    maven {url "http://repo.spring.io/milestone"}
 }
 
 dependencies {
     compile "org.springframework.boot:spring-boot-starter-data-jpa"
     compile "org.springframework.boot:spring-boot-starter-batch"
-    testCompile "junit:junit"
+    testCompile "org.springframework.boot:spring-boot-starter-test"
 }
