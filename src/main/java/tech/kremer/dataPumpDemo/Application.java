@@ -1,10 +1,5 @@
 package tech.kremer.dataPumpDemo;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.Optional;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -25,74 +20,80 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Iterator;
+import java.util.Optional;
+
 @SpringApplicationConfiguration
 @EnableBatchProcessing
 @EnableJpaRepositories
 @EnableTransactionManagement
 public class Application {
 
-    @Autowired
-    private JobBuilderFactory jobBuilderFactory;
+  @Autowired
+  private JobBuilderFactory jobBuilderFactory;
 
-    @Autowired
-    private StepBuilderFactory stepBuilderFactory;
+  @Autowired
+  private StepBuilderFactory stepBuilderFactory;
 
-    @Autowired
-    private InsertDataRepository repository;
+  @Autowired
+  private InsertDataRepository repository;
 
-    @Value("${importFile}")
-    private Resource importResource;
+  @Value("${importFile}")
+  private Resource importResource;
 
-    @Value("${splitRegex}")
-    private Optional<String> splitRegex;
+  @Value("${splitRegex}")
+  private Optional<String> splitRegex;
 
-    @Value("${chunkSize}")
-    private Optional<Integer> chunkSize;
+  @Value("${chunkSize}")
+  private Optional<Integer> chunkSize;
 
-    public static void main(final String... args) {
-        SpringApplication.run(Application.class, args);
-    }
+  public static void main(final String... args) {
+    SpringApplication.run(Application.class, args);
+  }
 
-    @Bean
-    @StepScope
-    public ItemReader<String> itemReader() throws IOException {
-        final Path importPath = importResource.getFile().toPath();
-        final Iterator<String> iterator = Files.lines(importPath).iterator();
+  @Bean
+  @StepScope
+  public ItemReader<String> itemReader() throws IOException {
+    final Path importPath = importResource.getFile().toPath();
+    final Iterator<String> iterator = Files.lines(importPath).iterator();
 
-        return new IteratorItemReader<>(iterator);
-    }
+    return new IteratorItemReader<>(iterator);
+  }
 
-    @Bean
-    public ItemProcessor<String, InsertData> itemProcessor() {
-        return string -> {
-            final String[] array = string.split(splitRegex.orElse(";"));
+  @Bean
+  public ItemProcessor<String, InsertData> itemProcessor() {
+    return string -> {
+      final String[] array = string.split(splitRegex.orElse(";"));
 
-            final InsertData insertData = new InsertData();
-            insertData.setFieldA(array[0]);
-            insertData.setFieldB(array[1]);
-            insertData.setFieldC(array[2]);
+      final InsertData insertData = new InsertData();
+      insertData.setFieldA(array[0]);
+      insertData.setFieldB(array[1]);
+      insertData.setFieldC(array[2]);
 
-            return insertData;
-        };
-    }
+      return insertData;
+    };
+  }
 
-    @Bean
-    @StepScope
-    public Step importStep() throws IOException {
-        return stepBuilderFactory.get("importStep")
-                .<String, InsertData>chunk(chunkSize.orElse(200))
-                .reader(itemReader())
-                .processor(itemProcessor())
-                .writer(list -> list.forEach(repository::save))
-                .build();
-    }
+  @Bean
+  @StepScope
+  public Step importStep() throws IOException {
+    return stepBuilderFactory.get("importStep")
+      .<String, InsertData>chunk(chunkSize.orElse(200))
+      .reader(itemReader())
+      .processor(itemProcessor())
+      .writer(list -> list.forEach(repository::save))
+      .build();
+  }
 
-    @Bean
-    @Scope(AbstractBeanFactory.SCOPE_PROTOTYPE)
-    public Job importJob() throws IOException {
-        return jobBuilderFactory.get("importJob")
-                .flow(importStep())
-                .end()
-                .build();
-    }
+  @Bean
+  @Scope(AbstractBeanFactory.SCOPE_PROTOTYPE)
+  public Job importJob() throws IOException {
+    return jobBuilderFactory.get("importJob")
+      .flow(importStep())
+      .end()
+      .build();
+  }
 }
