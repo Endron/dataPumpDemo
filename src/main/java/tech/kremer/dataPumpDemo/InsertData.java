@@ -1,4 +1,4 @@
-package io.github.endron.dataPumpDemo;
+package tech.kremer.dataPumpDemo;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

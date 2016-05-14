@@ -1,4 +1,4 @@
-package io.github.endron.dataPumpDemo;
+package tech.kremer.dataPumpDemo;
 
 import java.io.IOException;
 import java.nio.file.Files;
